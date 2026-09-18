@@ -1,0 +1,132 @@
+{% extends "kaixin/base.html" %}
+
+{% block title %}Dashboard · KaiXin{% endblock %}
+
+{% block body %}
+<div class="shell">
+    {% include "kaixin/includes/topbar.html" with nav_active="dashboard" %}
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
+                <div>
+                    <h4 class="card-title fw-semibold mb-1">Requests by IP</h4>
+                    <p class="text-secondary small mb-0 mt-1">{{ rows.paginator.count }} IP{{ rows.paginator.count|pluralize }} grouped by address.</p>
+                </div>
+                {% if rows.paginator.count %}
+                <form method="post" onsubmit="return confirm('Delete ALL request logs for every IP? This cannot be undone.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_all">
+                    <button class="btn btn-danger btn-sm" type="submit">Delete All Logs</button>
+                </form>
+                {% endif %}
+            </div>
+
+            <form class="row g-2 align-items-end mb-3 p-3 rounded border" method="get" action="{% url 'kaixin:export_logs' %}">
+                <div class="col-md-3">
+                    <label class="form-label mb-1">IP (optional)</label>
+                    <input class="form-control form-control-sm" type="text" name="ip" placeholder="All IPs" autocomplete="off">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label mb-1">Since</label>
+                    <input class="form-control form-control-sm" type="datetime-local" name="since" lang="en">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label mb-1">Until</label>
+                    <input class="form-control form-control-sm" type="datetime-local" name="until" lang="en">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">Export JSON</button>
+                </div>
+            </form>
+
+            {% if rows.paginator.count %}
+            {% include "kaixin/includes/bulk_ip_toolbar.html" with form_id="bulk-ip-form" select_all_id="select-all-ips" count_id="bulk-ip-count" variant="logs" %}
+            <div class="table-responsive table-wrap-fit">
+                <table class="table table-sm table-hover align-middle mb-0 table-fixed">
+                    <colgroup>
+                        <col class="col-check">
+                        <col class="col-ip">
+                        <col class="col-count">
+                        <col class="col-seen">
+                        <col class="col-device">
+                        <col class="col-reason">
+                        <col class="col-actions">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            {% include "kaixin/includes/ip_check_th.html" with select_all_id="select-all-ips" %}
+                            <th>IP</th>
+                            <th>Count</th>
+                            <th>Last Seen</th>
+                            <th>Device</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            {% include "kaixin/includes/ip_check_td.html" with form_id="bulk-ip-form" ip=row.ip %}
+                            <td class="font-monospace cell-clip" title="{{ row.ip }}">{{ row.ip }}</td>
+                            <td>{{ row.count }}</td>
+                            <td class="font-monospace cell-clip" title="{{ row.last_seen }}">{{ row.last_seen }}</td>
+                            <td class="cell-clip" title="{{ row.devices }}">{{ row.devices }}</td>
+                            <td class="cell-reason">
+                                {% if row.is_local %}
+                                <span class="badge rounded-pill text-bg-success">Local</span>
+                                {% elif row.blocked %}
+                                <div class="badge-list" {% if row.block_reason %}title="{{ row.block_reason }}"{% endif %}>
+                                    {% if row.block_reasons %}
+                                        {% for reason in row.block_reasons %}
+                                        <span class="badge rounded-pill text-bg-warning">{{ reason }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                    <span class="badge rounded-pill text-bg-warning">Blocked</span>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span class="badge rounded-pill text-bg-success">Active</span>
+                                {% endif %}
+                            </td>
+                            <td class="cell-actions">
+                                <div class="actions-row">
+                                    <a class="btn btn-outline-secondary btn-sm" href="{% url 'kaixin:ip_logs' row.ip %}">Details</a>
+                                    {% if row.is_local %}
+                                    <span class="btn btn-outline-secondary btn-sm disabled" title="Local addresses cannot be blocked">Block</span>
+                                    {% elif row.blocked %}
+                                    <form method="post" onsubmit="return confirm('Unblock {{ row.ip }}?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="unblock">
+                                        <input type="hidden" name="ip" value="{{ row.ip }}">
+                                        <button class="btn btn-outline-secondary btn-sm" type="submit">Unblock</button>
+                                    </form>
+                                    {% else %}
+                                    <form method="post" onsubmit="return confirm('Block {{ row.ip }}?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="block">
+                                        <input type="hidden" name="ip" value="{{ row.ip }}">
+                                        <button class="btn btn-danger btn-sm" type="submit">Block</button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="post" onsubmit="return confirm('Delete all request logs for {{ row.ip }}?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="ip" value="{{ row.ip }}">
+                                        <button class="btn btn-danger btn-sm" type="submit">Delete Logs</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "kaixin/includes/pagination.html" with page_obj=rows page_param="page" %}
+            {% else %}
+            <p class="text-secondary mb-0 py-3">No request logs yet.</p>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

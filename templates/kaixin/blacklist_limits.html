@@ -1,0 +1,62 @@
+{% extends "kaixin/blacklist_base.html" %}
+
+{% block title %}Request Limits · KaiXin{% endblock %}
+
+{% block blacklist_body %}
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">Request Limits</h4>
+            <p class="text-secondary small mb-3">Rate-limit and total-request auto-block. These do not apply to /mybox.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_policy">
+                {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="limits_redirect_url">Redirect URL</label>
+                        <input class="form-control" id="limits_redirect_url" type="url" name="limits_redirect_url" value="{{ policy.limits_redirect_url }}" required>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="rate_limit_enabled" name="rate_limit_enabled" {% if policy.rate_limit_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="rate_limit_enabled">Enable rate-limit auto-block</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="rate_limit_max_requests">Max requests</label>
+                        <input class="form-control" id="rate_limit_max_requests" type="number" name="rate_limit_max_requests" min="1" value="{{ policy.rate_limit_max_requests }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="rate_limit_window_seconds">Window (seconds)</label>
+                        <input class="form-control" id="rate_limit_window_seconds" type="number" name="rate_limit_window_seconds" min="1" value="{{ policy.rate_limit_window_seconds }}" required>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="total_request_limit_enabled" name="total_request_limit_enabled" {% if policy.total_request_limit_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="total_request_limit_enabled">Enable total-request auto-block</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="total_request_limit_max">Total request max</label>
+                        <input class="form-control" id="total_request_limit_max" type="number" name="total_request_limit_max" min="1" value="{{ policy.total_request_limit_max }}" required>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn btn-outline-secondary" type="submit" form="reset-limits-policy" onclick="return confirm('Reset request-limit settings to defaults from settings.py?');">Reset</button>
+                </div>
+            </form>
+            <form id="reset-limits-policy" class="d-none" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_policy">
+            </form>
+        </div>
+    </section>
+
+    {% include "kaixin/includes/blacklist_entries.html" with entries=rate_entries kind="rate" title="Rate limit blocked IPs" subtitle="Listed when the rate window is exceeded." empty_text="No rate-limit blocked IPs." delete_all_confirm="Remove ALL rate-limit blocked IPs?" page_param="rate_page" %}
+    {% include "kaixin/includes/blacklist_entries.html" with entries=limit_entries kind="limit" title="Total request blocked IPs" subtitle="Listed when the total request max is exceeded." empty_text="No total-request blocked IPs." delete_all_confirm="Remove ALL total-request blocked IPs?" page_param="limit_page" %}
+{% endblock %}

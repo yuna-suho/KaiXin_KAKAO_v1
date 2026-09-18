@@ -1,0 +1,42 @@
+{% extends "kaixin/blacklist_base.html" %}
+
+{% block title %}Unknown · KaiXin{% endblock %}
+
+{% block blacklist_body %}
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">Unknown device / OS auto-block</h4>
+            <p class="text-secondary small mb-3">When a request log has device or OS as Unknown, the IP is listed here and redirected. Local IPs and admin URLs are skipped.</p>
+            {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_policy">
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="unknown_block_enabled" name="unknown_block_enabled" {% if policy.unknown_block_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="unknown_block_enabled">Enable unknown auto-block</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="unknown_redirect_url">Redirect URL</label>
+                        <input class="form-control" id="unknown_redirect_url" type="url" name="unknown_redirect_url" value="{{ policy.unknown_redirect_url }}" required>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn btn-outline-secondary" type="submit" form="reset-unknown-policy" onclick="return confirm('Reset unknown settings to defaults from settings.py?');">Reset</button>
+                </div>
+            </form>
+            <form id="reset-unknown-policy" class="d-none" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_policy">
+            </form>
+        </div>
+    </section>
+
+    {% include "kaixin/includes/blacklist_entries.html" with entries=unknown_entries kind="unknown" title="Unknown blocked IPs" subtitle="Listed when device or OS is Unknown." empty_text="No unknown-blocked IPs." delete_all_confirm="Remove ALL unknown-blocked IPs?" %}
+{% endblock %}

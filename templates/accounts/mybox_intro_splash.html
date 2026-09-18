@@ -1,0 +1,7 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'accounts/css/mybox_intro_splash.css' %}?v=2">
+<div class="mybox-intro-splash{% if not show_mybox_intro %} is-hidden{% endif %}" id="myboxIntroSplash">
+    {% if show_mybox_intro %}
+    <iframe src="{% url 'mybox:intro_viewer' %}" title="MYBOX" tabindex="-1" loading="eager"></iframe>
+    {% endif %}
+</div>

@@ -1,0 +1,9 @@
+{% extends "kaixin/base.html" %}
+
+{% block body %}
+<div class="shell">
+    {% include "kaixin/includes/topbar.html" with nav_active="blacklist" %}
+    {% include "kaixin/includes/blacklist_subnav.html" %}
+    {% block blacklist_body %}{% endblock %}
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "kaixin/auth_base.html" %}
+
+{% block title %}Sign In · KaiXin{% endblock %}
+
+{% block body %}
+<main class="gate">
+    <section class="gate-brand" aria-hidden="true">
+        <div class="mark">
+            <h2 class="mark-title">KAI<em>XIN</em></h2>
+        </div>
+    </section>
+    <section class="gate-form">
+        <div class="form-frame">
+            <h1>Sign In</h1>
+            <form method="post" class="stack">
+                {% csrf_token %}
+                {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+                {% if info %}<div class="alert alert-wait">{{ info }}</div>{% endif %}
+                {% for message in messages %}
+                <div class="alert {% if message.tags == 'info' %}alert-wait{% else %}alert{% endif %}">{{ message }}</div>
+                {% endfor %}
+                <label class="field">
+                    <span>Username</span>
+                    <input type="text" name="username" value="{{ username }}" autocomplete="username" required>
+                </label>
+                <label class="field">
+                    <span>Password</span>
+                    <input type="password" name="password" autocomplete="current-password" required>
+                </label>
+                <button class="btn-gate" type="submit">Sign In</button>
+            </form>
+            <div class="form-foot">
+                <span class="hint">{% if has_admins %}Don't have an account?{% else %}No admin yet?{% endif %}</span>
+                <a href="{% url 'kaixin:register' %}">{% if has_admins %}Sign Up{% else %}Create first admin{% endif %}</a>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

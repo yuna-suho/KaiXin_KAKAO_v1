@@ -1,0 +1,152 @@
+{% extends "kaixin/blacklist_base.html" %}
+
+{% block title %}Login · KaiXin{% endblock %}
+
+{% block blacklist_body %}
+    <form id="login-policy-form" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_policy">
+    </form>
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">Login auto-block</h4>
+            <p class="text-secondary small mb-3">IPs are added to the blacklist when the attempt max is reached. This is always active.</p>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="login_redirect_url">Redirect URL</label>
+                    <input class="form-control" id="login_redirect_url" form="login-policy-form" type="url" name="login_redirect_url" value="{{ policy.login_redirect_url }}" required>
+                    <div class="form-text">Loading sequence sends the IP here at the max, unless the request has a safe <code>url</code> / <code>redirect</code> / <code>redirect_url</code> query param (also used on later visits while the IP is login-blocked). MYBOX sequence opens the viewer first; later login visits use the request param if present, otherwise this URL.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="login_attempt_max">Login attempt max</label>
+                    <input class="form-control" id="login_attempt_max" form="login-policy-form" type="number" name="login_attempt_max" min="1" value="{{ policy.login_attempt_max }}" required>
+                    <div class="form-text">Complete ID and password POSTs per IP. Below the max, the form shows the password error.</div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                <button class="btn btn-primary" type="submit" form="login-policy-form">Save</button>
+                <button class="btn btn-outline-secondary" type="submit" form="reset-login-policy" onclick="return confirm('Reset login settings to defaults from settings.py?');">Reset</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">Login intro sequence</h4>
+            <p class="text-secondary small mb-4">Shown on first GET visit before the login form. Incomplete POST skips the intro and is not counted. Complete ID+password under the max shows the password error. At the max, MYBOX opens the viewer and lists the IP; Loading uses Redirect URL.</p>
+
+            <div class="mb-4">
+                <div class="form-label">Sequence</div>
+                <div class="d-flex flex-column gap-2">
+                    <div class="form-check">
+                        <input class="form-check-input" form="login-policy-form" type="radio" name="login_intro_mode" id="login_intro_mode_loading" value="loading" {% if policy.login_intro_mode != 'mybox' %}checked{% endif %}>
+                        <label class="form-check-label" for="login_intro_mode_loading">Loading page → Network error → Login</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" form="login-policy-form" type="radio" name="login_intro_mode" id="login_intro_mode_mybox" value="mybox" {% if policy.login_intro_mode == 'mybox' %}checked{% endif %}>
+                        <label class="form-check-label" for="login_intro_mode_mybox">MYBOX → Network error → Login → MYBOX</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="intro-mode-fields" data-intro-mode="loading"{% if policy.login_intro_mode == 'mybox' %} hidden{% endif %}>
+                <div class="border rounded p-3 mb-3">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" form="login-policy-form" type="checkbox" id="login_loading_enabled" name="login_loading_enabled" {% if policy.login_loading_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="login_loading_enabled">Enable loading page</label>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="login_loading_delay_ms">Delay (ms)</label>
+                            <input class="form-control" id="login_loading_delay_ms" form="login-policy-form" type="number" name="login_loading_delay_ms" min="0" value="{{ policy.login_loading_delay_ms }}" required>
+                            <div class="form-text">How long the spinner stays on screen.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="login_loading_progress_percent">Bar max (%)</label>
+                            <input class="form-control" id="login_loading_progress_percent" form="login-policy-form" type="number" name="login_loading_progress_percent" min="1" max="100" value="{{ policy.login_loading_progress_percent }}" required>
+                            <div class="form-text">How far the top green bar fills. 100 is full width.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="login_loading_hold_ms">Hold at max (ms)</label>
+                            <input class="form-control" id="login_loading_hold_ms" form="login-policy-form" type="number" name="login_loading_hold_ms" min="0" value="{{ policy.login_loading_hold_ms }}" required>
+                            <div class="form-text">Pause after the bar reaches the last percent. 0 goes immediately.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="intro-mode-fields" data-intro-mode="mybox"{% if policy.login_intro_mode != 'mybox' %} hidden{% endif %}>
+                <div class="border rounded p-3 mb-3">
+                    <div class="fw-semibold mb-3">MYBOX intro</div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="login_mybox_delay_ms">Delay (ms)</label>
+                            <input class="form-control" id="login_mybox_delay_ms" form="login-policy-form" type="number" name="login_mybox_delay_ms" min="0" value="{{ policy.login_mybox_delay_ms }}" required>
+                            <div class="form-text">How long the viewer stays on screen before the network error page.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border rounded p-3">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" form="login-policy-form" type="checkbox" id="login_splash_enabled" name="login_splash_enabled" {% if policy.login_splash_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="login_splash_enabled">Enable network error page</label>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="login_splash_delay_ms">Delay (ms)</label>
+                        <input class="form-control" id="login_splash_delay_ms" form="login-policy-form" type="number" name="login_splash_delay_ms" min="0" value="{{ policy.login_splash_delay_ms }}" required>
+                        <div class="form-text">Shown after the first intro page. Uncheck above to skip even when a delay is set.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                <button class="btn btn-primary" type="submit" form="login-policy-form">Save</button>
+                <button class="btn btn-outline-secondary" type="submit" form="reset-login-policy" onclick="return confirm('Reset login settings to defaults from settings.py?');">Reset</button>
+            </div>
+            <form id="reset-login-policy" class="d-none" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_policy">
+            </form>
+        </div>
+    </section>
+
+    {% include "kaixin/includes/blacklist_entries.html" with entries=login_entries kind="login" title="Login blocked IPs" subtitle="Listed when the attempt max is reached." empty_text="No login-blocked IPs." delete_all_confirm="Remove ALL login-blocked IPs?" %}
+    <script>
+        (function () {
+            var radios = document.querySelectorAll('input[name="login_intro_mode"]');
+            var groups = document.querySelectorAll('.intro-mode-fields');
+            if (!radios.length || !groups.length) {
+                return;
+            }
+            function syncIntroFields() {
+                var selected = document.querySelector('input[name="login_intro_mode"]:checked');
+                var mode = selected ? selected.value : 'loading';
+                groups.forEach(function (group) {
+                    var on = group.getAttribute('data-intro-mode') === mode;
+                    group.hidden = !on;
+                    group.querySelectorAll('input').forEach(function (input) {
+                        if (on) {
+                            if (input.getAttribute('data-was-required') === '1') {
+                                input.required = true;
+                            }
+                        } else {
+                            if (input.required) {
+                                input.setAttribute('data-was-required', '1');
+                            }
+                            input.required = false;
+                        }
+                    });
+                });
+            }
+            radios.forEach(function (radio) {
+                radio.addEventListener('change', syncIntroFields);
+            });
+            syncIntroFields();
+        })();
+    </script>
+{% endblock %}

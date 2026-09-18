@@ -1,0 +1,25 @@
+<form id="{{ form_id }}" method="post" class="bulk-ip-form mb-2" data-bulk-select data-select-all="{{ select_all_id }}" data-count="{{ count_id }}">
+    {% csrf_token %}
+    {% if entry_kind %}
+    <input type="hidden" name="entry_kind" value="{{ entry_kind }}">
+    {% elif hit_kind %}
+    <input type="hidden" name="entry_kind" value="{{ hit_kind }}">
+    {% endif %}
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <span class="text-secondary small me-1" id="{{ count_id }}">0 selected</span>
+        {% if variant == 'logs' %}
+        <button class="btn btn-danger btn-sm" type="submit" name="action" value="block_selected" data-bulk-action data-confirm="Block {n} selected IP(s)?">Block Selected</button>
+        <button class="btn btn-outline-secondary btn-sm" type="submit" name="action" value="unblock_selected" data-bulk-action data-confirm="Unblock {n} selected IP(s)?">Unblock Selected</button>
+        <button class="btn btn-danger btn-sm" type="submit" name="action" value="delete_selected" data-bulk-action data-confirm="Delete all request logs for {n} selected IP(s)? This cannot be undone.">Delete Selected Logs</button>
+        <button class="btn btn-danger btn-sm" type="submit" name="action" value="block_and_delete_selected" data-bulk-action data-confirm="Block and delete all request logs for {n} selected IP(s)? This cannot be undone.">Block &amp; Delete Selected</button>
+        {% elif variant == 'entries' %}
+        <button class="btn btn-danger btn-sm" type="submit" name="action" value="remove_selected" data-bulk-action data-confirm="Remove {n} selected IP(s) from the blacklist?">Remove Selected</button>
+        {% elif variant == 'kind_entries' %}
+        <button class="btn btn-danger btn-sm" type="submit" name="action" value="remove_selected_kind" data-bulk-action data-confirm="Remove {n} selected IP(s) from this list?">Remove Selected</button>
+        {% elif variant == 'visits' %}
+        <button class="btn btn-danger btn-sm" type="submit" name="action" value="block_selected" data-bulk-action data-confirm="Block {n} selected IP(s)?">Block Selected</button>
+        <button class="btn btn-outline-secondary btn-sm" type="submit" name="action" value="unblock_selected" data-bulk-action data-confirm="Unblock {n} selected IP(s)?">Unblock Selected</button>
+        <button class="btn btn-danger btn-sm" type="submit" name="action" value="delete_selected_visits" data-bulk-action data-confirm="Delete visit records for {n} selected IP(s)? Listed MYBOX IPs will also be unblocked.">Delete Selected</button>
+        {% endif %}
+    </div>
+</form>

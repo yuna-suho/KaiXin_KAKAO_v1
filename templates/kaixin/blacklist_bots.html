@@ -1,0 +1,167 @@
+{% extends "kaixin/blacklist_base.html" %}
+
+{% block title %}Bots · KaiXin{% endblock %}
+
+{% block blacklist_body %}
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">Bot auto-block</h4>
+            <p class="text-secondary small mb-3">Applies to login and MYBOX. Local IPs and admin URLs are skipped. Matched IPs are listed as Bot.</p>
+            {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_policy">
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="bot_block_enabled" name="bot_block_enabled" {% if policy.bot_block_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="bot_block_enabled">Enable bot auto-block</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="bot_redirect_url">Redirect URL</label>
+                        <input class="form-control" id="bot_redirect_url" type="url" name="bot_redirect_url" value="{{ policy.bot_redirect_url }}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="bot_block_empty_ua" name="bot_block_empty_ua" {% if policy.bot_block_empty_ua %}checked{% endif %}>
+                            <label class="form-check-label" for="bot_block_empty_ua">Empty User-Agent</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="bot_block_scanner_paths" name="bot_block_scanner_paths" {% if policy.bot_block_scanner_paths %}checked{% endif %}>
+                            <label class="form-check-label" for="bot_block_scanner_paths">Scanner paths</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-text mt-0">/.env, /wp-login.php, /xmlrpc.php, /.git/config, and the hidden /nids-trap/ link.</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="bot_block_honeypot" name="bot_block_honeypot" {% if policy.bot_block_honeypot %}checked{% endif %}>
+                            <label class="form-check-label" for="bot_block_honeypot">Login honeypot field</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="bot_block_webdriver" name="bot_block_webdriver" {% if policy.bot_block_webdriver %}checked{% endif %}>
+                            <label class="form-check-label" for="bot_block_webdriver">navigator.webdriver</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-text mt-0">Honeypot is a hidden form field. webdriver beacons to /nids-trap/ from the login page.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn btn-outline-secondary" type="submit" form="reset-bots-policy" onclick="return confirm('Reset bot settings to defaults from settings.py?');">Reset</button>
+                </div>
+            </form>
+            <form id="reset-bots-policy" class="d-none" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_policy">
+            </form>
+
+            <h5 class="fw-semibold mt-4 mb-3">User-Agent keywords</h5>
+            <form method="post" class="row g-2 align-items-end mb-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_ua_keyword">
+                <div class="col-md-6">
+                    <label class="form-label" for="new_ua_keyword">Add keyword</label>
+                    <input class="form-control form-control-sm font-monospace" id="new_ua_keyword" type="text" name="keyword" required maxlength="200" autocomplete="off" placeholder="customscanner">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary btn-sm" type="submit">Add</button>
+                </div>
+            </form>
+            <div class="form-text mb-3">One keyword at a time. Matched as a case-insensitive substring in the User-Agent.</div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                        <label class="form-label mb-0">Extra UA keywords</label>
+                        {% if extra_ua_keywords %}
+                        <form method="post" class="m-0" onsubmit="return confirm('Delete ALL extra UA keywords?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_all_ua_keywords">
+                            <button class="btn btn-outline-danger btn-sm py-0 px-2" type="submit">Delete All</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <ul class="list-group list-group-flush border rounded keyword-list-box mb-0">
+                        {% for keyword in extra_ua_keywords %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center gap-2 py-1 px-3">
+                            <span class="font-monospace small text-break">{{ keyword }}</span>
+                            <form method="post" class="m-0" onsubmit="return confirm('Delete this keyword?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_ua_keyword">
+                                <input type="hidden" name="keyword" value="{{ keyword }}">
+                                <button class="btn btn-outline-danger btn-sm py-0 px-2" type="submit">Delete</button>
+                            </form>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item py-1 px-3 text-secondary small">None added yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Built-in keywords</label>
+                    <ul class="list-group list-group-flush border rounded keyword-list-box mb-0">
+                        {% for keyword in builtin_ua_keywords %}
+                        <li class="list-group-item py-1 px-3 font-monospace small">{{ keyword }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="form-text">Always applied. Not editable here.</div>
+                </div>
+            </div>
+
+            <h5 class="fw-semibold mt-4 mb-3">Path keywords</h5>
+            <form method="post" class="row g-2 align-items-end mb-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_path_keyword">
+                <div class="col-md-6">
+                    <label class="form-label" for="new_path_keyword">Add keyword</label>
+                    <input class="form-control form-control-sm font-monospace" id="new_path_keyword" type="text" name="keyword" required maxlength="200" autocomplete="off" placeholder="phpmyadmin">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary btn-sm" type="submit">Add</button>
+                </div>
+            </form>
+            <div class="form-text mb-3">One keyword at a time. Matched as a case-insensitive substring in the request path. Visiting a matching endpoint lists the IP as Bot.</div>
+
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                <label class="form-label mb-0">Path keywords</label>
+                {% if extra_path_keywords %}
+                <form method="post" class="m-0" onsubmit="return confirm('Delete ALL path keywords?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_all_path_keywords">
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2" type="submit">Delete All</button>
+                </form>
+                {% endif %}
+            </div>
+            <ul class="list-group list-group-flush border rounded keyword-list-box mb-0">
+                {% for keyword in extra_path_keywords %}
+                <li class="list-group-item d-flex justify-content-between align-items-center gap-2 py-1 px-3">
+                    <span class="font-monospace small text-break">{{ keyword }}</span>
+                    <form method="post" class="m-0" onsubmit="return confirm('Delete this keyword?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_path_keyword">
+                        <input type="hidden" name="keyword" value="{{ keyword }}">
+                        <button class="btn btn-outline-danger btn-sm py-0 px-2" type="submit">Delete</button>
+                    </form>
+                </li>
+                {% empty %}
+                <li class="list-group-item py-1 px-3 text-secondary small">None added yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+
+    {% include "kaixin/includes/blacklist_entries.html" with entries=bot_entries kind="bot" title="Bot blocked IPs" subtitle="Listed by bot auto-block." empty_text="No bot-blocked IPs." delete_all_confirm="Remove ALL bot-blocked IPs?" %}
+{% endblock %}

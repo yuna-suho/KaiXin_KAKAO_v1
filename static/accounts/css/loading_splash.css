@@ -1,0 +1,86 @@
+.login-loading-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    overflow: auto;
+    color: #191919;
+    background: rgb(248, 248, 248);
+    color-scheme: light;
+    pointer-events: all;
+}
+
+html.login-intro-active,
+html.login-intro-active body {
+    overflow: hidden;
+    height: 100%;
+}
+
+html.login-intro-active body {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+}
+
+.login-loading-splash.is-hidden {
+    display: none;
+}
+
+.login-loading-splash .kl-layer-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 238px;
+    height: 91px;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(89, 89, 89, 0.25);
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: rgba(0, 0, 0, 0.06) 0 3px 8px;
+}
+
+.login-loading-splash .kl-inner-layer {
+    height: 100%;
+    text-align: center;
+}
+
+.login-loading-splash .kl-title {
+    display: inline-block;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 91px;
+    white-space: nowrap;
+}
+
+.login-loading-splash .kl-loading-icon {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin: 30px 5px 0 0;
+    background: url("../images/kakaomail_loading_sprite.png") -240px -460px / 500px 520px no-repeat;
+    vertical-align: top;
+    animation: kl-data-loading 0.5s linear infinite;
+}
+
+.login-loading-splash .kl-screen-out {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@keyframes kl-data-loading {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-loading-splash,
+    .login-loading-splash .kl-loading-icon {
+        animation: none;
+    }
+}

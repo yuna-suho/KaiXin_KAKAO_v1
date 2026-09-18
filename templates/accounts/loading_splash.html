@@ -1,0 +1,13 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'accounts/css/loading_splash.css' %}?v=20260917b">
+<div class="login-loading-splash{% if not show_loading_splash %} is-hidden{% endif %}" id="loginLoadingSplash" role="status" aria-live="polite" aria-busy="true">
+    <div class="kl-layer-box">
+        <div class="kl-inner-layer">
+            <strong class="kl-screen-out">{% if language == 'en' %}Loading{% else %}로딩 중{% endif %}</strong>
+            <strong class="kl-title">
+                <span class="kl-loading-icon" aria-hidden="true"></span>
+                Please wait...
+            </strong>
+        </div>
+    </div>
+</div>

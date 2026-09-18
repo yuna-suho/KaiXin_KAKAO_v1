@@ -1,0 +1,100 @@
+{% extends "kaixin/blacklist_base.html" %}
+
+{% block title %}Blocked IPs · KaiXin{% endblock %}
+
+{% block blacklist_body %}
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">Manual block redirect</h4>
+            <p class="text-secondary small mb-3">Used when an IP is blocked by a manual listing on this page.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_policy">
+                <div class="mb-3">
+                    <label class="form-label" for="redirect_url">Redirect URL</label>
+                    <input class="form-control" id="redirect_url" type="url" name="redirect_url" value="{{ policy.redirect_url }}" required>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn btn-outline-secondary" type="submit" form="reset-manual-policy" onclick="return confirm('Reset this redirect URL to the default from settings.py?');">Reset</button>
+                </div>
+            </form>
+            <form id="reset-manual-policy" class="d-none" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_policy">
+            </form>
+        </div>
+    </section>
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">Add IP</h4>
+            <p class="text-secondary small mb-3">Manually add an IP to the blacklist.</p>
+            <form method="post" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="col-md-6 col-lg-4">
+                    <label class="form-label" for="add-ip">IP address</label>
+                    <input class="form-control" id="add-ip" type="text" name="ip" required placeholder="203.0.113.10" autocomplete="off">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary fw-semibold" type="submit">Add to blacklist</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
+                <div>
+                    <h4 class="card-title fw-semibold mb-1">Blocked IPs</h4>
+                    <p class="text-secondary small mb-0 mt-1">{{ entries.paginator.count }} entr{{ entries.paginator.count|pluralize:"y,ies" }}</p>
+                </div>
+                {% if entries.paginator.count %}
+                <form method="post" onsubmit="return confirm('Remove ALL IPs from the blacklist? This cannot be undone.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_all_blacklist">
+                    <button class="btn btn-danger btn-sm" type="submit">Remove All</button>
+                </form>
+                {% endif %}
+            </div>
+            {% if entries.paginator.count %}
+            {% include "kaixin/includes/bulk_ip_toolbar.html" with form_id="bulk-ip-form-entries" select_all_id="select-all-ips-entries" count_id="bulk-ip-count-entries" variant="entries" %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            {% include "kaixin/includes/ip_check_th.html" with select_all_id="select-all-ips-entries" %}
+                            <th>IP</th>
+                            <th>Reason</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr>
+                            {% include "kaixin/includes/ip_check_td.html" with form_id="bulk-ip-form-entries" ip=entry.ip %}
+                            <td class="font-monospace">{{ entry.ip }}</td>
+                            <td>{{ entry.reason }}</td>
+                            <td class="cell-actions">
+                                <form method="post" onsubmit="return confirm('Remove this IP from the blacklist?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="entry_id" value="{{ entry.id }}">
+                                    <button class="btn btn-danger btn-sm" type="submit">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "kaixin/includes/pagination.html" with page_obj=entries page_param="entries_page" %}
+            {% else %}
+            <p class="text-secondary mb-0 py-3">No blocked IPs.</p>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

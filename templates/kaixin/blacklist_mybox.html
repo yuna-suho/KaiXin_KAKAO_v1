@@ -1,0 +1,187 @@
+{% extends "kaixin/blacklist_base.html" %}
+
+{% block title %}MYBOX · KaiXin{% endblock %}
+
+{% block blacklist_body %}
+    {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">MYBOX visit auto-block</h4>
+            <p class="text-secondary small mb-3">Separate from other blacklist kinds. Manual, rate, login, and total-request blocks do not apply to /mybox.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_policy">
+
+                <div class="row g-3">
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="mybox_visit_limit_enabled" name="mybox_visit_limit_enabled" {% if policy.mybox_visit_limit_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="mybox_visit_limit_enabled">Enable MYBOX visit auto-block</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="mybox_visit_max">MYBOX visit max</label>
+                        <input class="form-control" id="mybox_visit_max" type="number" name="mybox_visit_max" min="1" value="{{ policy.mybox_visit_max }}" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="mybox_redirect_url">Redirect URL</label>
+                        <input class="form-control" id="mybox_redirect_url" type="url" name="mybox_redirect_url" value="{{ policy.mybox_redirect_url }}" required>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn btn-outline-secondary" type="submit" form="reset-mybox-policy" onclick="return confirm('Reset MYBOX settings to defaults from settings.py?');">Reset</button>
+                </div>
+            </form>
+            <form id="reset-mybox-policy" class="d-none" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_policy">
+            </form>
+        </div>
+    </section>
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <h4 class="card-title fw-semibold mb-1">MYBOX viewer</h4>
+            <p class="text-secondary small mb-3">Page title, image, display name, and file size shown on /mybox/ and the login intro viewer.</p>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_display">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" for="mybox_page_title">Page title</label>
+                        <input class="form-control" id="mybox_page_title" type="text" name="mybox_page_title" value="{{ mybox_display.page_title }}" maxlength="200" required>
+                        <div class="form-text">Browser tab title for /mybox/. Shown in the HTML title tag.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Current image</label>
+                        <div class="mb-2">
+                            <img class="img-fluid rounded border mybox-preview" src="{{ mybox_display.image_url }}" alt="{{ mybox_display.filename }}{{ mybox_display.extension }}">
+                        </div>
+                        <label class="form-label" for="mybox_image">Replace image</label>
+                        <input class="form-control" id="mybox_image" type="file" name="mybox_image" accept="image/jpeg,image/png,image/gif,image/webp">
+                        <div class="form-text">JPG, PNG, GIF, or WebP. 8MB max. Stored as media/mybox/viewer plus the image extension. Leave empty to keep the current image.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="mybox_filename">Image name</label>
+                        <div class="input-group">
+                            <input class="form-control" id="mybox_filename" type="text" name="mybox_filename" value="{{ mybox_display.filename }}" maxlength="120" required>
+                            <span class="input-group-text">{{ mybox_display.extension }}</span>
+                        </div>
+                        <div class="form-text mb-3">Shown in the viewer. The file on disk stays viewer{{ mybox_display.extension }}.</div>
+                        <label class="form-label" for="mybox_filesize">File size</label>
+                        <input class="form-control" id="mybox_filesize" type="text" name="mybox_filesize" value="{{ mybox_display.filesize }}" maxlength="32" required>
+                        <div class="form-text">Display text only, for example 2MB. It does not have to match the real file.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="mybox_image_url">Image URL</label>
+                        <div class="input-group">
+                            <input class="form-control font-monospace" id="mybox_image_url" type="text" value="{{ mybox_display.image_absolute_url }}" readonly>
+                            <button class="btn btn-outline-secondary" id="copy-mybox-image-url" type="button">Copy</button>
+                        </div>
+                        <div class="form-text">Use this URL to load the current image from another site.</div>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                    <button class="btn btn-primary" type="submit">Save viewer</button>
+                    <button class="btn btn-outline-secondary" type="submit" form="reset-mybox-display" onclick="return confirm('Reset MYBOX title, image, name, and file size to defaults?');">Reset viewer</button>
+                </div>
+            </form>
+            <form id="reset-mybox-display" class="d-none" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_display">
+            </form>
+        </div>
+    </section>
+
+    <section class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
+                <div>
+                    <h4 class="card-title fw-semibold mb-1">MYBOX Visits</h4>
+                    <p class="text-secondary small mb-0 mt-1">{{ mybox_visits.paginator.count }} record{{ mybox_visits.paginator.count|pluralize }}. Deleting a record also unblocks that IP if it was listed for MYBOX visits.</p>
+                </div>
+                {% if mybox_visits.paginator.count %}
+                <form method="post" onsubmit="return confirm('Delete ALL MYBOX visit records? Listed MYBOX IPs will also be unblocked.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_all_visits">
+                    <button class="btn btn-danger btn-sm" type="submit">Delete All</button>
+                </form>
+                {% endif %}
+            </div>
+            {% if mybox_visits.paginator.count %}
+            {% include "kaixin/includes/bulk_ip_toolbar.html" with form_id="bulk-ip-form-visits" select_all_id="select-all-ips-visits" count_id="bulk-ip-count-visits" variant="visits" hit_kind="mybox" %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            {% include "kaixin/includes/ip_check_th.html" with select_all_id="select-all-ips-visits" %}
+                            <th>IP</th>
+                            <th>Visits</th>
+                            <th>Last visit</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in mybox_visits %}
+                        <tr>
+                            {% include "kaixin/includes/ip_check_td.html" with form_id="bulk-ip-form-visits" ip=row.ip %}
+                            <td class="font-monospace">{{ row.ip }}</td>
+                            <td>{{ row.count }}</td>
+                            <td>{{ row.updated_at }}</td>
+                            <td>
+                                {% if row.blocked %}
+                                <span class="badge rounded-pill text-bg-warning">Blocked</span>
+                                {% else %}
+                                <span class="badge rounded-pill text-bg-success">Active</span>
+                                {% endif %}
+                            </td>
+                            <td class="cell-actions">
+                                <form method="post" onsubmit="return confirm('Delete visit records for this IP?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete_visit">
+                                    <input type="hidden" name="ip" value="{{ row.ip }}">
+                                    <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "kaixin/includes/pagination.html" with page_obj=mybox_visits page_param="visits_page" %}
+            {% else %}
+            <p class="text-secondary mb-0 py-3">No MYBOX visit records.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <script>
+        (function () {
+            var button = document.getElementById('copy-mybox-image-url');
+            var input = document.getElementById('mybox_image_url');
+            if (!button || !input) {
+                return;
+            }
+            button.addEventListener('click', function () {
+                var text = input.value;
+                var original = button.textContent;
+                function done() {
+                    button.textContent = 'Copied';
+                    setTimeout(function () {
+                        button.textContent = original;
+                    }, 1500);
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done);
+                    return;
+                }
+                input.select();
+                document.execCommand('copy');
+                done();
+            });
+        })();
+    </script>
+{% endblock %}

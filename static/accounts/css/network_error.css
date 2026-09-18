@@ -1,0 +1,159 @@
+.network-error-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 10002;
+    overflow: hidden;
+    background: rgb(245, 246, 247);
+    color-scheme: light;
+}
+
+.network-error-splash.is-hidden {
+    display: none;
+}
+
+.network-error-splash .ne-wrap {
+    position: relative;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+}
+
+.network-error-splash .ne-sp,
+.network-error-splash .ne-logo {
+    background: url("../sprite/pc_sp_login_170424.png") no-repeat;
+}
+
+.network-error-splash .ne-blind {
+    position: absolute !important;
+    clip: rect(0, 0, 0, 0) !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px;
+    overflow: hidden !important;
+}
+
+.network-error-splash .ne-header,
+.network-error-splash .ne-container {
+    width: 768px;
+    max-width: calc(100% - 20px);
+    margin: 0 auto;
+}
+
+.network-error-splash .ne-header {
+    position: relative;
+    box-sizing: border-box;
+    height: 168px;
+    padding: 62px 0 0;
+}
+
+.network-error-splash .ne-header .ne-h-logo {
+    display: block;
+    overflow: hidden;
+    width: 240px;
+    height: 44px;
+    margin: 0 auto;
+    background-position: -1px -1px;
+    line-height: 999px;
+}
+
+.network-error-splash .ne-container {
+    padding-bottom: 100px;
+}
+
+.network-error-splash .ne-content {
+    width: 460px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.network-error-splash .ne-warning {
+    margin-top: -21px;
+}
+
+.network-error-splash .ne-warning-title {
+    text-align: center;
+}
+
+.network-error-splash .ne-ico-warning {
+    display: inline-block;
+    width: 51px;
+    height: 51px;
+    background-position: -1px -182px;
+}
+
+.network-error-splash .ne-warning-title h2 {
+    font-size: 16px;
+    line-height: 23px;
+    margin: 11px 0 4px;
+    color: rgb(51, 51, 51);
+    font-weight: 400;
+}
+
+.network-error-splash .ne-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 15px 0;
+    text-align: center;
+}
+
+.network-error-splash .ne-footer address {
+    font: 9px / 14px Verdana;
+    font-style: normal;
+    color: rgb(51, 51, 51);
+}
+
+.network-error-splash .ne-footer address a {
+    font: 700 9px Verdana;
+    color: rgb(51, 51, 51);
+    text-decoration: none;
+}
+
+.network-error-splash .ne-footer address a:hover {
+    color: rgb(8, 166, 0);
+    text-decoration: underline;
+}
+
+.network-error-splash .ne-footer address em {
+    font: 9px Verdana;
+    font-style: normal;
+    padding-left: 4px;
+}
+
+.network-error-splash .ne-footer .ne-logo {
+    position: relative;
+    display: inline-block;
+    width: 63px;
+    height: 11px;
+    background-position: -242px -1px;
+    top: 2px;
+}
+
+.network-error-splash .ne-footer .ne-copy {
+    font: 9px Verdana;
+    font-style: normal;
+}
+
+.network-error-splash .ne-footer .ne-u-cri {
+    font-size: 11px;
+    display: inline-block;
+    margin: 0 2px;
+}
+
+.network-error-splash .ne-footer .ne-u-cra {
+    font-size: 11px;
+    color: rgb(158, 158, 158);
+}
+
+.network-error-splash .ne-footer .ne-all-r {
+    font-size: 11px;
+    color: rgb(158, 158, 158);
+}
+
+@media only screen and (max-width: 1024px) {
+    .network-error-splash .ne-sp,
+    .network-error-splash .ne-logo {
+        background-image: url("../sprite/pc_sp_login_170424.png");
+        background-size: 460px auto;
+    }
+}

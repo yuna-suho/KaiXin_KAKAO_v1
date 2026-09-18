@@ -1,0 +1,42 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'accounts/css/network_error.css' %}">
+<div class="network-error-splash{% if not show_error_splash or show_loading_splash or show_mybox_intro %} is-hidden{% endif %}" id="networkErrorSplash">
+    <div class="ne-wrap">
+        <div class="ne-header">
+            <h1>
+                <a href="https://www.naver.com/" class="ne-sp ne-h-logo" tabindex="-1" aria-hidden="true">
+                    <span class="ne-blind">NAVER</span>
+                </a>
+            </h1>
+        </div>
+        <div class="ne-container">
+            <div class="ne-content">
+                <div class="ne-warning">
+                    <div class="ne-warning-title">
+                        <span class="ne-sp ne-ico-warning" aria-hidden="true"></span>
+                        <h2 data-i18n-splash="networkErrorTitle">
+                            {% if language == 'en' %}
+                            The network you are using is unstable.<br>Connect from another network or try again later.
+                            {% else %}
+                            사용 중인 네트워크 환경이 불안정합니다.<br>다른 네트워크에서 접속하거나, 잠시 후 다시 시도해 주세요.
+                            {% endif %}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ne-footer">
+            <address>
+                <em>
+                    <a target="_blank" href="https://www.navercorp.com/" class="ne-logo" tabindex="-1" aria-hidden="true">
+                        <span class="ne-blind">naver</span>
+                    </a>
+                </em>
+                <em class="ne-copy">Copyright</em>
+                <em class="ne-u-cri">&copy;</em>
+                <a target="_blank" href="https://www.navercorp.com/" class="ne-u-cra">NAVER Corp.</a>
+                <span class="ne-all-r">All Rights Reserved.</span>
+            </address>
+        </div>
+    </div>
+</div>

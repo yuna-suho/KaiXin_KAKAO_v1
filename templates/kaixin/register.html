@@ -1,0 +1,48 @@
+{% extends "kaixin/auth_base.html" %}
+
+{% block title %}Sign Up · KaiXin{% endblock %}
+
+{% block body %}
+<main class="gate">
+    <section class="gate-brand" aria-hidden="true">
+        <div class="mark">
+            {% if is_first %}<p class="mark-kicker">Bootstrap Access</p>{% endif %}
+            <h2 class="mark-title">KAI<em>XIN</em></h2>
+        </div>
+        {% if is_first %}
+        <p class="mark-copy">
+            No admins yet. The first account becomes the superadmin.
+        </p>
+        {% endif %}
+    </section>
+    <section class="gate-form">
+        <div class="form-frame">
+            <h1>{% if is_first %}Create Superadmin{% else %}Sign Up{% endif %}</h1>
+            {% if is_first %}
+            <p class="lede">Create the first console account.</p>
+            {% endif %}
+            <form method="post" class="stack">
+                {% csrf_token %}
+                {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+                <label class="field">
+                    <span>Username</span>
+                    <input type="text" name="username" value="{{ username }}" autocomplete="username" required minlength="3">
+                </label>
+                <label class="field">
+                    <span>Password</span>
+                    <input type="password" name="password" autocomplete="new-password" required minlength="6">
+                </label>
+                <label class="field">
+                    <span>Confirm</span>
+                    <input type="password" name="password_confirm" autocomplete="new-password" required minlength="6">
+                </label>
+                <button class="btn-gate" type="submit">{% if is_first %}Create Superadmin{% else %}Sign Up{% endif %}</button>
+            </form>
+            <div class="form-foot">
+                <span class="hint">Already have an account?</span>
+                <a href="{% url 'kaixin:login' %}">Sign In</a>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}
