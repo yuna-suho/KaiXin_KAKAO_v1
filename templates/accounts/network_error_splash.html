@@ -1,42 +1,40 @@
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'accounts/css/network_error.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'accounts/css/network_error.css' %}?v=20260921a">
 <div class="network-error-splash{% if not show_error_splash or show_loading_splash or show_mybox_intro %} is-hidden{% endif %}" id="networkErrorSplash">
-    <div class="ne-wrap">
-        <div class="ne-header">
-            <h1>
-                <a href="https://www.naver.com/" class="ne-sp ne-h-logo" tabindex="-1" aria-hidden="true">
-                    <span class="ne-blind">NAVER</span>
-                </a>
-            </h1>
-        </div>
-        <div class="ne-container">
-            <div class="ne-content">
-                <div class="ne-warning">
-                    <div class="ne-warning-title">
-                        <span class="ne-sp ne-ico-warning" aria-hidden="true"></span>
-                        <h2 data-i18n-splash="networkErrorTitle">
-                            {% if language == 'en' %}
-                            The network you are using is unstable.<br>Connect from another network or try again later.
-                            {% else %}
-                            사용 중인 네트워크 환경이 불안정합니다.<br>다른 네트워크에서 접속하거나, 잠시 후 다시 시도해 주세요.
-                            {% endif %}
-                        </h2>
+    <div class="ne-inner">
+        <main class="ne-main">
+            <div class="ne-title">
+                <h1 class="ne-logo"><span class="ne-screen-out">Kakao</span></h1>
+            </div>
+            <article class="ne-article">
+                <div class="ne-error">
+                    <h2 class="ne-screen-out">
+                        {% if language == 'en' %}Error Description{% else %}에러 안내{% endif %}
+                    </h2>
+                    <div class="ne-error-inner">
+                        <span class="ne-error-image" aria-hidden="true"></span>
+                        <strong class="ne-error-title" data-t="unknownError">
+                            {% if language == 'en' %}Unknown error.{% else %}알 수 없는 오류입니다.{% endif %}
+                        </strong>
                     </div>
                 </div>
+            </article>
+        </main>
+        <footer class="ne-footer">
+            <strong class="ne-screen-out">
+                {% if language == 'en' %}Service Usage Information{% else %}서비스 이용 정보{% endif %}
+            </strong>
+            <div class="ne-footer-group ne-language">
+                <span class="ne-language-text" data-t="lang">
+                    {% if language == 'en' %}English{% else %}한국어{% endif %}
+                </span>
             </div>
-        </div>
-        <div class="ne-footer">
-            <address>
-                <em>
-                    <a target="_blank" href="https://www.navercorp.com/" class="ne-logo" tabindex="-1" aria-hidden="true">
-                        <span class="ne-blind">naver</span>
-                    </a>
-                </em>
-                <em class="ne-copy">Copyright</em>
-                <em class="ne-u-cri">&copy;</em>
-                <a target="_blank" href="https://www.navercorp.com/" class="ne-u-cra">NAVER Corp.</a>
-                <span class="ne-all-r">All Rights Reserved.</span>
-            </address>
-        </div>
+            <div class="ne-footer-group ne-policy">
+                <a href="https://www.kakao.com/policy/terms?lang={{ language|default:'ko' }}" target="_blank" rel="noreferrer noopener" data-t="terms">이용약관</a>
+                <a href="https://www.kakao.com/policy/privacy?lang={{ language|default:'ko' }}" target="_blank" rel="noreferrer noopener"><strong data-t="privacy">개인정보 처리방침</strong></a>
+                <a href="https://cs.kakao.com/" target="_blank" rel="noreferrer noopener" data-t="support">고객센터</a>
+            </div>
+            <small class="ne-copyright">©<a href="https://www.kakaocorp.com/" target="_blank" rel="noreferrer noopener">Kakao Corp.</a></small>
+        </footer>
     </div>
 </div>

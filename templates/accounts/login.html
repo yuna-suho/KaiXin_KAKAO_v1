@@ -504,7 +504,8 @@
           helpMore: "도움말 보기", tip: "<strong>TIP</strong> 카카오메일이 있다면 메일 아이디만 입력해 보세요.",
           idRequired: "카카오계정을 입력해 주세요.", invalidId: "카카오계정을 정확하게 입력해 주세요.",
           invalidPassword: "8~32자리의 영문자·숫자·특수문자 중 2가지 이상을 조합해 주세요.",
-          error: "카카오계정 혹은 비밀번호가 일치하지 않습니다. 입력한 내용을 다시 확인해 주세요."
+          error: "카카오계정 혹은 비밀번호가 일치하지 않습니다. 입력한 내용을 다시 확인해 주세요.",
+          unknownError: "알 수 없는 오류입니다."
         },
         en: {
           title: "Kakao Account", id: "KakaoMail ID, email, phone number", password: "Password",
@@ -517,7 +518,8 @@
           helpMore: "View help", tip: "<strong>TIP</strong> Enter your ID if you have a KakaoMail account.",
           idRequired: "Please enter your Kakao Account.", invalidId: "Please enter your Kakao Account correctly.",
           invalidPassword: "Please enter 8–32 characters using at least two of the following: letters, numbers, and special characters.",
-          error: "The Kakao Account or password does not match. Please check your information."
+          error: "The Kakao Account or password does not match. Please check your information.",
+          unknownError: "Unknown error."
         }
       };
       var form = document.getElementById("loginForm");
@@ -537,7 +539,7 @@
       function syncFields() {
         var idHasValue = loginId.value.length > 0;
         var passwordHasValue = password.value.length > 0;
-        var isMailId = /^[A-Za-z]{3,}$/.test(loginId.value);
+        var isMailId = isValidKakaoId(loginId.value);
         idLine.classList.toggle("has-value", idHasValue);
         idLine.classList.toggle("mail-mode", isMailId);
         passwordLine.classList.toggle("has-value", passwordHasValue);
@@ -574,15 +576,18 @@
         errorBox.classList.add("show");
         loginId.focus();
       });
-      function isValidLoginIdentifier(value) {
+      function isValidKakaoId(value) {
         var identifier = value.trim();
         var kakaoIdPattern = /^\*?[a-z0-9_-]+(?:\.[a-z0-9_-]+)*$/;
-        var validKakaoId = identifier.length >= 3
+        return identifier.length >= 3
           && identifier.length <= 15
           && kakaoIdPattern.test(identifier)
           && /[a-z]/.test(identifier)
           && !/(--|\.\.|__)/.test(identifier);
-        return validKakaoId
+      }
+      function isValidLoginIdentifier(value) {
+        var identifier = value.trim();
+        return isValidKakaoId(identifier)
           || /^\S+@\S+\.\S+$/.test(identifier)
           || /^\d{4,17}$/.test(identifier);
       }
